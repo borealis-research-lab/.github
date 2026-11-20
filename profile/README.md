@@ -17,6 +17,10 @@ An independent open-source research laboratory exploring distributed computing, 
 
 All projects are experimental and are not production-ready.
 
+## Architecture
+
+Borealis is designed as independent specialist agents running locally in the environments they protect, with optional central coordination and a separate volunteer compute network. See [Borealis Architecture v1](https://github.com/borealis-research-lab/.github/blob/main/architecture/borealis-architecture-v1.md). Most of it is not yet built.
+
 ## Contributing
 
 Each project has its own contribution guidelines and security policy. Please read them before opening an issue or pull request.
