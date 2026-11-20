@@ -58,6 +58,27 @@ These are logical components. They don't have to be separate servers, repositori
   - returns the results.
 - **Never:** runs arbitrary commands, reaches protected infrastructure, or receives data whose classification forbids volunteer processing.
 - **Trust model:** worker machines are untrusted. Their results are validated, for example by running the same job on several machines, before Core accepts them. This follows the precedent of volunteer computing projects such as BOINC.
+- **Distribution:**
+  - The standard experience is a native **Borealis Desktop Worker** for Windows, Linux and macOS. It is one download that detects the hardware, recommends a profile, lets the contributor set CPU, memory and GPU limits, and backs off when the machine is busy.
+  - A **Container Worker** is an optional route for technical contributors and organisations. It is never privileged, has no host mounts by default and has restricted network access.
+  - Contributors don't need to know what Docker, GGUF or CUDA are.
+- **Models:** model weights are downloaded separately from an approved source and checked against a trusted checksum. They are never bundled in the installer or image.
+- **Non-negotiable controls:**
+  - workloads never run as administrator or root;
+  - no access to personal files;
+  - network access is denied by default, apart from coordinator traffic;
+  - hard CPU, memory and process limits where the platform supports them;
+  - signed job manifests and releases, and verified model checksums;
+  - the contributor can pause, stop or uninstall at any time.
+
+  A container alone is not a sufficient security boundary.
+- **No arbitrary code:** Core cannot send arbitrary executables or shell commands to a worker. Only workloads from a reviewed, signed catalogue are eligible.
+
+### 3.5 Shared workload catalogue
+Signed workload packages, a model registry with checksums, job definitions and validation rules. Workers will run nothing that isn't in it.
+
+### 3.6 Local model interface
+All agents and workers reach a model through one Borealis interface, so the inference runtime can be replaced without rewriting agents.
 
 ## 4. Data classification and placement
 
@@ -72,6 +93,30 @@ These are logical components. They don't have to be separate servers, repositori
 | Processing approved, sanitised datasets | Volunteer pool, subject to the data owner's policy |
 
 The rule is that **data goes to the compute only if its classification allows it**. Spare GPU capacity is never a reason to move sensitive data. Privacy-preserving distributed analysis is a separate research question and isn't needed for v1.
+
+There are two separate uses of AI, and they never mix:
+- **Local protection AI** interprets an environment's own events on that environment's own machine.
+- **Collective AI compute** runs on volunteer machines and only processes public, synthetic or explicitly approved data.
+
+A volunteer's model never analyses another organisation's sensitive events.
+
+## 4a. Who sees what
+
+The principle: **data belongs to whoever owns the environment it came from.** Everyone else sees only what their role needs, and only with the owner's consent.
+
+| Role | Sees | Never sees | Why they need it |
+|---|---|---|---|
+| **Environment owner** (organisation or individual running agents) | Everything: raw events, full findings, interpretations | (nothing withheld) | It is their data and their decision what to do about it |
+| **Borealis Core** | Coverage status: which agents run on which registered asset, last run, health. Finding *counts* by rule and severity only if the owner's policy allows | Raw events, evidence, user names, IP addresses, host details | Coverage planning and gap detection don't need sensitive data |
+| **Compute volunteers** | Their own machine: jobs run, resources used, job inputs (public or synthetic) | Anything from protected environments, including which organisations take part | They donate capacity, not trust, and need transparency to stay in control |
+| **Agent developers** | Bug reports and anonymised quality statistics that users choose to share | User data by default | Improving detection doesn't require anyone's logs |
+| **Outside parties** (e.g. NCSC-FI, a security provider) | Whatever the owner chooses to share | (owner decides) | Reporting obligations stay with the owner, not Borealis |
+
+What follows from this:
+- **The asset registry is the most sensitive data in Core.** It is a map of critical infrastructure and its coverage gaps, so it gets the strictest access control.
+- Volunteers and protected environments never learn about each other. Core sends volunteers jobs, never context.
+- **Cloud AI assistants count as outside parties.** Developer tools such as Claude Code must not read real security data unless the owner explicitly chooses to share it. Setup prompts and tooling must be designed so this never happens by accident (see Nyyrikki's `SETUP_PROMPT.md`).
+- **Agents show findings to the local user first,** as a readable summary. Machine-readable output (`--json`) exists for a future Node to consume locally.
 
 ## 5. Assets and authorisation
 
@@ -151,7 +196,32 @@ A job that can't be validated isn't sent to untrusted workers.
 | 7 | **Connect the network**: Core allocates suitable workloads to workers | Not started |
 | 8 | **Pilot coverage** with a small number of consenting organisations | Not started |
 
-## 10. Open questions
+### Worker track (after Nyyrikki's real-world MVP)
+1. Benchmark Qwen3.5 0.8B and 2B on the same Nyyrikki test dataset.
+2. Establish the local model interface (3.6).
+3. Package a portable inference runtime.
+4. Build the first Worker, without network job allocation.
+5. Add hardware detection and configurable resource limits.
+6. Test on Windows, Linux and macOS.
+7. Add signed job manifests and isolated execution.
+8. Introduce Core job allocation.
+9. Invite the first volunteer computers.
+
+Nyyrikki development doesn't stop while the worker track is under way.
+
+## 10. Decisions
+
+| Date | Decision | Status |
+|---|---|---|
+| 2026-11-20 | Hybrid, federated architecture with four components: Core, Node, Worker and Agents | Adopted |
+| 2026-11-20 | **Inference runtime:** llama.cpp with GGUF models as the first cross-platform approach, behind the local model interface | Adopted |
+| 2026-11-20 | **Model candidates:** Qwen3.5 0.8B and 2B, both Apache 2.0, to be benchmarked on Nyyrikki's dataset. Gemma 3 1B is a possible third, but its licence terms need review | Candidates only; nothing committed until benchmarked |
+| 2026-11-20 | **Distribution:** native Desktop Worker as standard, Docker optional | Adopted |
+| 2026-11-20 | **Hardware profiles** for 8 GB, 16 GB and 32 GB+ machines | Proposed. Final minimum requirements will come from benchmarks on real machines (starting with a Windows 11 PC with 32 GB, an older laptop and a dedicated-GPU machine), not assumptions |
+
+Nyyrikki's MVP currently reaches its optional model through Ollama's local API. That will move to the llama.cpp-based local model interface when step 2 of the worker track is done.
+
+## 11. Open questions
 
 - How Node and Core authenticate each other, and how Core signs jobs and manages its keys.
 - How the owner's reporting policy is expressed and enforced on a node.
