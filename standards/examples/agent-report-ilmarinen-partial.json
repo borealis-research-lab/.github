@@ -1,0 +1,59 @@
+{
+  "standard": "borealis-agent-report/1",
+  "agent": {
+    "name": "ilmarinen",
+    "version": "0.2.0"
+  },
+  "run": {
+    "id": "3f2b8c1e-5d4a-4b6f-9e2d-1a2b3c4d5e6f",
+    "started_at": "2026-11-20T14:00:00Z",
+    "finished_at": "2026-11-20T14:00:01.250000Z"
+  },
+  "source": {
+    "type": "file-hashes",
+    "description": "SHA-256 content hashes of configured roots.",
+    "scope": [
+      {
+        "kind": "root",
+        "id": "documents",
+        "count": 312
+      }
+    ]
+  },
+  "status": "partial",
+  "errors": [
+    {
+      "code": "unreadable",
+      "message": "Entry could not be read.",
+      "ref": "file:documents:private/locked.db"
+    }
+  ],
+  "errors_total": 1,
+  "error_counts": {
+    "unreadable": 1
+  },
+  "findings": [
+    {
+      "finding_id": "ilmarinen:file-changed:38886f22957351fe",
+      "created_at": "2026-11-20T14:00:00Z",
+      "rule_id": "file-changed",
+      "severity": "medium",
+      "observation": "Observed facts only.",
+      "assessment": "Why it may matter.",
+      "recommendation": "What a human should review.",
+      "limitations": "What this rule can get wrong.",
+      "evidence": [
+        {
+          "ref": "file:documents:config/settings.json",
+          "timestamp": "2026-11-20T13:59:00Z",
+          "details": {
+            "note": "agent-specific"
+          }
+        }
+      ],
+      "evidence_total": 1,
+      "evidence_refs_digest": "d618208dd71a3a4ecef23a65a1a0d86e25e1e86792a5d6d9f628c9a9d247a985"
+    }
+  ],
+  "findings_total": 1
+}

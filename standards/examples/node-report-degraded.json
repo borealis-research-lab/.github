@@ -1,0 +1,294 @@
+{
+  "standard": "borealis-node-report/1",
+  "node": {
+    "name": "borealis-node",
+    "version": "0.1.0"
+  },
+  "run": {
+    "id": "8d7c6b5a-4e3f-4a1b-8c2d-0e1f2a3b4c5d",
+    "started_at": "2026-11-20T14:00:00Z",
+    "finished_at": "2026-11-20T14:00:03Z"
+  },
+  "outcome": "degraded",
+  "complete": true,
+  "agents": [
+    {
+      "config_name": "nyyrikki",
+      "expected_name": "nyyrikki",
+      "outcome": "ok",
+      "execution": {
+        "started_at": "2026-11-20T14:00:00Z",
+        "finished_at": "2026-11-20T14:00:02Z",
+        "exit_code": 0,
+        "timed_out": false,
+        "killed": false,
+        "stdout_bytes": 4096,
+        "output_too_large": false,
+        "launch_error": null
+      },
+      "validation": {
+        "result": "valid",
+        "problems": [],
+        "problems_total": 0
+      },
+      "diagnostic": null,
+      "report_embedding": "embedded",
+      "report": {
+        "standard": "borealis-agent-report/1",
+        "agent": {
+          "name": "nyyrikki",
+          "version": "0.2.0"
+        },
+        "run": {
+          "id": "3f2b8c1e-5d4a-4b6f-9e2d-1a2b3c4d5e6f",
+          "started_at": "2026-11-20T14:00:00Z",
+          "finished_at": "2026-11-20T14:00:01.250000Z"
+        },
+        "source": {
+          "type": "windows-security-events",
+          "description": "Exported Windows Security events.",
+          "scope": [
+            {
+              "kind": "event-export",
+              "id": "security-event-export",
+              "count": 17
+            }
+          ]
+        },
+        "status": "ok",
+        "errors": [],
+        "errors_total": 0,
+        "error_counts": {},
+        "findings": [
+          {
+            "finding_id": "nyyrikki:account-created:085d500a21decea9",
+            "created_at": "2026-11-20T14:00:00Z",
+            "rule_id": "account-created",
+            "severity": "medium",
+            "observation": "Observed facts only.",
+            "assessment": "Why it may matter.",
+            "recommendation": "What a human should review.",
+            "limitations": "What this rule can get wrong.",
+            "evidence": [
+              {
+                "ref": "windows-security:record:2014",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              }
+            ],
+            "evidence_total": 1,
+            "evidence_refs_digest": "93d3771b8806802f37b067e5ea50fd06380aa2f5aaad58ee8deab59cf8e11409"
+          },
+          {
+            "finding_id": "nyyrikki:failed-logon-burst:53941d0d25a818e5",
+            "created_at": "2026-11-20T14:00:00Z",
+            "rule_id": "failed-logon-burst",
+            "severity": "medium",
+            "observation": "Observed facts only.",
+            "assessment": "Why it may matter.",
+            "recommendation": "What a human should review.",
+            "limitations": "What this rule can get wrong.",
+            "evidence": [
+              {
+                "ref": "windows-security:record:2001",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2002",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2003",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2004",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2005",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2006",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2007",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2008",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2009",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2010",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2011",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              },
+              {
+                "ref": "windows-security:record:2012",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              }
+            ],
+            "evidence_total": 12,
+            "evidence_refs_digest": "ff36d583e8427df72f566fdcec2013995ab0d70e41f8a8565acc287bd236c45e"
+          }
+        ],
+        "findings_total": 2
+      },
+      "report_summary": null
+    },
+    {
+      "config_name": "ilmarinen",
+      "expected_name": "ilmarinen",
+      "outcome": "degraded",
+      "execution": {
+        "started_at": "2026-11-20T14:00:00Z",
+        "finished_at": "2026-11-20T14:00:02Z",
+        "exit_code": 0,
+        "timed_out": false,
+        "killed": false,
+        "stdout_bytes": 4096,
+        "output_too_large": false,
+        "launch_error": null
+      },
+      "validation": {
+        "result": "valid",
+        "problems": [],
+        "problems_total": 0
+      },
+      "diagnostic": null,
+      "report_embedding": "embedded",
+      "report": {
+        "standard": "borealis-agent-report/1",
+        "agent": {
+          "name": "ilmarinen",
+          "version": "0.2.0"
+        },
+        "run": {
+          "id": "3f2b8c1e-5d4a-4b6f-9e2d-1a2b3c4d5e6f",
+          "started_at": "2026-11-20T14:00:00Z",
+          "finished_at": "2026-11-20T14:00:01.250000Z"
+        },
+        "source": {
+          "type": "file-hashes",
+          "description": "SHA-256 content hashes of configured roots.",
+          "scope": [
+            {
+              "kind": "root",
+              "id": "documents",
+              "count": 312
+            }
+          ]
+        },
+        "status": "partial",
+        "errors": [
+          {
+            "code": "unreadable",
+            "message": "Entry could not be read.",
+            "ref": "file:documents:private/locked.db"
+          }
+        ],
+        "errors_total": 1,
+        "error_counts": {
+          "unreadable": 1
+        },
+        "findings": [
+          {
+            "finding_id": "ilmarinen:file-changed:38886f22957351fe",
+            "created_at": "2026-11-20T14:00:00Z",
+            "rule_id": "file-changed",
+            "severity": "medium",
+            "observation": "Observed facts only.",
+            "assessment": "Why it may matter.",
+            "recommendation": "What a human should review.",
+            "limitations": "What this rule can get wrong.",
+            "evidence": [
+              {
+                "ref": "file:documents:config/settings.json",
+                "timestamp": "2026-11-20T13:59:00Z",
+                "details": {
+                  "note": "agent-specific"
+                }
+              }
+            ],
+            "evidence_total": 1,
+            "evidence_refs_digest": "d618208dd71a3a4ecef23a65a1a0d86e25e1e86792a5d6d9f628c9a9d247a985"
+          }
+        ],
+        "findings_total": 1
+      },
+      "report_summary": null
+    },
+    {
+      "config_name": "broken",
+      "expected_name": "broken",
+      "outcome": "failed",
+      "execution": {
+        "started_at": "2026-11-20T14:00:02Z",
+        "finished_at": "2026-11-20T14:00:02Z",
+        "exit_code": null,
+        "timed_out": false,
+        "killed": false,
+        "stdout_bytes": 0,
+        "output_too_large": false,
+        "launch_error": "not-found"
+      },
+      "validation": {
+        "result": "not-run",
+        "problems": [],
+        "problems_total": 0
+      },
+      "diagnostic": null,
+      "report_embedding": "none",
+      "report": null,
+      "report_summary": null
+    }
+  ]
+}
