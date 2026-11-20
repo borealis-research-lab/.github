@@ -6,7 +6,7 @@ An independent open-source research laboratory exploring distributed computing, 
 
 | Project | Description | Status |
 |---------|-------------|--------|
-| [Nyyrikki](https://github.com/borealis-research-lab/nyyrikki) | A local AI security scout focused on identifying potentially suspicious activity in local security events. | Experimental, repository bootstrap |
+| [Nyyrikki](https://github.com/borealis-research-lab/security-event-analysis) (`security-event-analysis`) | Identifies potentially suspicious activity in local Windows Security events, with traceable evidence. Deterministic rules; reports in `borealis-agent-report/1`. | Experimental MVP, validated on real Windows data |
 
 ## How we work
 
