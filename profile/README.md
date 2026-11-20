@@ -22,6 +22,10 @@ All projects are experimental and are not production-ready.
 
 Borealis is designed as independent specialist agents running locally in the environments they protect, with optional central coordination and a separate volunteer compute network. See [Borealis Architecture v1](https://github.com/borealis-research-lab/.github/blob/main/architecture/borealis-architecture-v1.md). Most of it is not yet built.
 
+## Roadmap
+
+What we build next, in order, and what each step must prove first: [Borealis Roadmap v1](https://github.com/borealis-research-lab/.github/blob/main/architecture/borealis-roadmap-v1.md).
+
 ## Contributing
 
 Each project has its own contribution guidelines and security policy. Please read them before opening an issue or pull request.
