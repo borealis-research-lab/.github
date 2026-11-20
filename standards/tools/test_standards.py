@@ -208,3 +208,35 @@ def test_cli_rejects_trailing_newline_identifier(tmp_path):
         capture_output=True, text=True, timeout=60,
     )
     assert result.returncode == 1 and "agent name" in result.stdout
+
+
+# --- Excessively long integers ---------------------------------------------------------------
+
+
+@pytest.mark.parametrize("text", [
+    b'{"value": ' + b"9" * 5000 + b"}",
+    b'{"value": -' + b"9" * 5000 + b"}",
+    b"[" + b"1" * 100000 + b"]",
+    b"[10000000000000000]",
+])
+def test_strict_parsing_rejects_long_integers_without_conversion(text):
+    with pytest.raises(c.StrictJsonError):
+        c.strict_loads(text)
+
+
+def test_strict_parsing_accepts_integers_at_the_limit():
+    assert c.strict_loads(b"[9007199254740991,-9007199254740991,0]") == [2**53 - 1, -(2**53 - 1), 0]
+
+
+def test_cli_rejects_5000_digit_integer_without_traceback(tmp_path):
+    import subprocess
+
+    path = tmp_path / "report.json"
+    path.write_bytes(b'{"standard": "borealis-agent-report/1", "errors_total": ' + b"9" * 5000 + b"}")
+    result = subprocess.run(
+        [sys.executable, "-I", str(TOOLS / "check_report.py"), "agent", str(path)],
+        capture_output=True, text=True, timeout=60,
+    )
+    assert result.returncode == 1
+    assert "INVALID" in result.stdout
+    assert "Traceback" not in result.stderr

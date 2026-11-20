@@ -133,8 +133,19 @@ def _reject_float(text: str) -> Any:
     raise StrictJsonError(f"floats are not permitted ({text})")
 
 
+MAX_INT_DIGITS = len(str(MAX_INT))  # 16; JSON integers have no leading zeros
+
+
 def _checked_int(text: str) -> int:
-    value = int(text)
+    # Check the digit count before converting: unrestricted int() on thousands of digits
+    # can raise ValueError (Python's conversion limit) or be slow.
+    digits = text[1:] if text.startswith("-") else text
+    if len(digits) > MAX_INT_DIGITS:
+        raise StrictJsonError(f"integer outside +-(2^53-1) ({len(digits)} digits)")
+    try:
+        value = int(text)
+    except ValueError:
+        raise StrictJsonError("invalid integer") from None
     if abs(value) > MAX_INT:
         raise StrictJsonError(f"integer outside +-(2^53-1): {text}")
     return value
