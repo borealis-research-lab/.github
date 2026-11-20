@@ -20,7 +20,8 @@ import check_report as c  # noqa: E402
 VECTORS = c.strict_loads((STANDARDS / "test-vectors-v1.json").read_bytes())
 EXAMPLES = STANDARDS / "examples"
 
-# Invalid report vectors that JSON Schema alone can detect.
+# Invalid report vectors that JSON Schema alone can detect (plus every "trailing-newline-*"
+# vector: identifier patterns must reject a final newline in every regex engine).
 SCHEMA_DETECTABLE = {
     "unknown-field", "unknown-finding-field", "timestamp-with-offset", "severity-not-label",
     "ref-without-namespace", "other-codes-used-as-code", "unknown-node-field", "saved-as-is-a-path",
@@ -52,7 +53,7 @@ def test_schema_agrees_with_checker(vector):
     schema_errors = list(validator.iter_errors(vector["report"]))
     if vector["valid"]:
         assert schema_errors == []
-    elif vector["name"] in SCHEMA_DETECTABLE:
+    elif vector["name"] in SCHEMA_DETECTABLE or vector["name"].startswith("trailing-newline-"):
         assert schema_errors, "schema should reject this structural violation"
     else:
         assert schema_errors == [], "invariant-only violation: schema accepts, checker rejects"

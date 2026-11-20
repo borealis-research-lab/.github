@@ -16,6 +16,7 @@ Machine-readable structure: [`agent-report-v1.schema.json`](agent-report-v1.sche
 - Reports MUST follow [Canonical JSON](canonical-json-v1.md) value rules and strict parsing: no floats, NaN, Infinity or duplicate keys, and integers within ±(2^53−1). Formatting (indentation, key order) is free, except where a digest is computed.
 - **Timestamps** are UTC only: `YYYY-MM-DDTHH:MM:SS[.ffffff]Z`, with at most 6 fractional digits. Times taken from source data are converted to UTC.
 - **Plain text fields** MUST NOT contain control characters other than tab and newline.
+- **Identifier-style fields** (names, codes, tokens, ids, refs, digests, versions, timestamps) must match their pattern **as a whole string**. In particular, a trailing newline is never permitted. The schemas pair each identifier pattern with `"not": {"pattern": "\\n"}`, so validators built on regex engines where `$` can match before a final newline (such as Python's `re`) reject it too. Implementations should use full-string matching, e.g. `re.fullmatch` in Python.
 
 ## 2. The report object
 The field set is **closed**. Unknown fields are permitted only inside `extensions` and evidence `details`, and consumers MUST reject them anywhere else.

@@ -14,11 +14,11 @@ CJ is the byte-exact serialisation used for **every digest and fingerprint** in 
 |---|---|
 | object | Keys MUST be ASCII strings and unique |
 | array | Any permitted values |
-| string | Any Unicode text. It is NFC-normalised before serialisation |
+| string | A sequence of **Unicode scalar values**. Unpaired surrogates (U+D800–U+DFFF not forming a valid pair) are not permitted. It is NFC-normalised before serialisation |
 | integer | Range −(2^53−1) to 2^53−1 inclusive |
 | `true`, `false`, `null` | As-is |
 
-Floats (any number with a fraction or exponent), NaN and Infinity are **not permitted**. A value containing them cannot be canonicalised, and the operation MUST fail.
+Floats (any number with a fraction or exponent), NaN, Infinity and strings containing unpaired surrogates are **not permitted**. A value containing them cannot be canonicalised, and the operation MUST fail with a controlled error, never a crash.
 
 ## Serialisation
 1. NFC-normalise every string value. Keys are ASCII, so normalisation never changes them.
@@ -44,6 +44,7 @@ Consumers of Borealis reports MUST reject input that:
 - is not valid UTF-8, or starts with a byte order mark;
 - contains anything other than exactly one JSON value (trailing data is not permitted);
 - has duplicate keys in any object;
+- contains a string or key with an unpaired surrogate, such as the escape `\ud800` on its own, or a low surrogate before a high one. A correctly paired escape such as `😀` is one scalar value and is permitted;
 - contains `NaN`, `Infinity` or `-Infinity`;
 - contains a number with a fraction or exponent, or an integer outside ±(2^53−1).
 

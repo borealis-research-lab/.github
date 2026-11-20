@@ -57,6 +57,7 @@ RE_HEX64 = re.compile(r"^[0-9a-f]{64}$")
 RE_PRINTABLE_ASCII = re.compile(r"^[\x20-\x7e]*$")
 RE_CONTROL = re.compile(r"[\x00-\x1f\x7f]")
 RE_TEXT_FORBIDDEN = re.compile(r"[\x00-\x08\x0b-\x1f\x7f]")  # plain text may contain \t and \n
+RE_SURROGATE = re.compile(r"[\ud800-\udfff]")
 RE_ABSOLUTE_PATH_HINT = re.compile(r"(?:\b[A-Za-z]:[\\/])|(?:\\\\[^\\\s]+\\)|(?:(?:^|\s)/(?:home|Users|root)/)")
 
 
@@ -79,6 +80,8 @@ def _cj_normalise(value: Any, path: str = "$") -> Any:
     if isinstance(value, float):
         raise CanonicalJsonError(f"{path}: floats are not permitted")
     if isinstance(value, str):
+        if RE_SURROGATE.search(value):
+            raise CanonicalJsonError(f"{path}: unpaired surrogate (strings must be Unicode scalar values)")
         return unicodedata.normalize("NFC", value)
     if isinstance(value, list):
         return [_cj_normalise(v, f"{path}[{i}]") for i, v in enumerate(value)]
@@ -147,7 +150,7 @@ def strict_loads(data: bytes) -> Any:
     except UnicodeDecodeError as exc:
         raise StrictJsonError(f"not valid UTF-8 at byte {exc.start}") from None
     try:
-        return json.loads(
+        value = json.loads(
             text,
             object_pairs_hook=_no_duplicates,
             parse_constant=_reject_constant,
@@ -156,6 +159,26 @@ def strict_loads(data: bytes) -> Any:
         )
     except json.JSONDecodeError as exc:
         raise StrictJsonError(f"invalid JSON: {exc.msg} at position {exc.pos}") from None
+    except RecursionError:
+        raise StrictJsonError("nesting too deep") from None
+    _reject_surrogates(value)
+    return value
+
+
+def _reject_surrogates(value: Any) -> None:
+    """Escapes such as \\ud800 decode to unpaired surrogates; a valid escaped pair
+    decodes to one scalar value. Strings must be sequences of Unicode scalar values."""
+    stack = [value]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, str):
+            if RE_SURROGATE.search(item):
+                raise StrictJsonError("unpaired surrogate in string (strings must be Unicode scalar values)")
+        elif isinstance(item, list):
+            stack.extend(item)
+        elif isinstance(item, dict):
+            stack.extend(item.keys())
+            stack.extend(item.values())
 
 
 # ---------------------------------------------------------------------------------------
@@ -180,10 +203,12 @@ def valid_ref(ref: Any) -> str | None:
     if not isinstance(ref, str):
         return "ref must be a string"
     namespace, sep, value = ref.partition(":")
-    if not sep or not RE_NAMESPACE.match(namespace):
+    if not sep or not RE_NAMESPACE.fullmatch(namespace):
         return "ref must be <namespace>:<value> with a lowercase ASCII namespace"
     if not value or len(value) > 1000:
         return "ref value must be 1-1000 characters"
+    if RE_SURROGATE.search(value):
+        return "ref value contains an unpaired surrogate"
     if RE_CONTROL.search(value):
         return "ref value contains control characters"
     if unicodedata.normalize("NFC", value) != value:
@@ -265,20 +290,22 @@ def _text(p: Problems, value: Any, path: str, max_len: int, allow_newlines: bool
         return
     if len(value) > max_len:
         p.add(path, f"longer than {max_len} characters")
+    if RE_SURROGATE.search(value):
+        p.add(path, "contains an unpaired surrogate")
     pattern = RE_TEXT_FORBIDDEN if allow_newlines else RE_CONTROL
     if pattern.search(value):
         p.add(path, "contains control characters")
 
 
 def _pattern(p: Problems, value: Any, path: str, regex: re.Pattern[str], what: str) -> bool:
-    if not isinstance(value, str) or not regex.match(value):
+    if not isinstance(value, str) or not regex.fullmatch(value):
         p.add(path, f"must be {what}")
         return False
     return True
 
 
 def _timestamp(p: Problems, value: Any, path: str) -> datetime | None:
-    if not isinstance(value, str) or not RE_TIMESTAMP.match(value):
+    if not isinstance(value, str) or not RE_TIMESTAMP.fullmatch(value):
         p.add(path, "must be a UTC timestamp YYYY-MM-DDTHH:MM:SS[.ffffff]Z")
         return None
     try:
@@ -336,7 +363,7 @@ def _validate_errors(p: Problems, report: dict[str, Any]) -> dict[str, int]:
     if len(counts) > 100:
         p.add("$.error_counts", "more than 100 keys")
     for code, n in counts.items():
-        if code != OTHER_CODES and not RE_CODE.match(code):
+        if code != OTHER_CODES and not RE_CODE.fullmatch(code):
             p.add("$.error_counts", f"invalid code {code!r}")
         _int(p, n, f"$.error_counts.{code}", 1)
     if OTHER_CODES in counts and len(counts) != 100:
@@ -402,11 +429,12 @@ def _validate_finding(p: Problems, f: Any, path: str, agent_name: str, counts: d
             for_size = len(evidence) == min(100, total) and "evidence-truncated-for-size" in counts
             if not (disclosed or for_size):
                 p.add(f"{path}.evidence", "truncated evidence must keep 500 items, or 100 with evidence-truncated-for-size")
-    if not isinstance(digest, str) or not RE_HEX64.match(digest):
+    if not isinstance(digest, str) or not RE_HEX64.fullmatch(digest):
         p.add(f"{path}.evidence_refs_digest", "must be 64 lowercase hex characters")
     elif isinstance(total, int) and total == len(evidence) == len(refs) and evidence_refs_digest(refs) != digest:
         p.add(f"{path}.evidence_refs_digest", "does not match the evidence refs")
-    if rule_ok and isinstance(digest, str) and f.get("finding_id") != finding_id(agent_name, f["rule_id"], digest):
+    digest_ok = isinstance(digest, str) and RE_HEX64.fullmatch(digest) is not None
+    if rule_ok and digest_ok and f.get("finding_id") != finding_id(agent_name, f["rule_id"], digest):
         p.add(f"{path}.finding_id", "does not match agent name, rule_id and evidence_refs_digest")
 
     if "evidence_details_omitted" in f:
@@ -460,7 +488,7 @@ def validate_agent_report(report: Any, size_bytes: int | None = None) -> list[st
         if _pattern(p, report["agent"]["name"], "$.agent.name", RE_AGENT_NAME, "a lowercase agent name"):
             agent_name = report["agent"]["name"]
         version = report["agent"]["version"]
-        if not isinstance(version, str) or not 1 <= len(version) <= 32 or not RE_PRINTABLE_ASCII.match(version):
+        if not isinstance(version, str) or not 1 <= len(version) <= 32 or not RE_PRINTABLE_ASCII.fullmatch(version):
             p.add("$.agent.version", "must be 1-32 printable ASCII characters")
     if _keys(p, report["run"], "$.run", {"id", "started_at", "finished_at"}):
         _pattern(p, report["run"]["id"], "$.run.id", RE_UUID4, "a lowercase UUID v4")
@@ -568,7 +596,7 @@ def validate_node_report(report: Any, size_bytes: int | None = None) -> list[str
         if report["node"]["name"] != "borealis-node":
             p.add("$.node.name", "must be 'borealis-node'")
         v = report["node"]["version"]
-        if not isinstance(v, str) or not 1 <= len(v) <= 32 or not RE_PRINTABLE_ASCII.match(v):
+        if not isinstance(v, str) or not 1 <= len(v) <= 32 or not RE_PRINTABLE_ASCII.fullmatch(v):
             p.add("$.node.version", "must be 1-32 printable ASCII characters")
     if _keys(p, report["run"], "$.run", {"id", "started_at", "finished_at"}):
         _pattern(p, report["run"]["id"], "$.run.id", RE_UUID4, "a lowercase UUID v4")
@@ -622,7 +650,7 @@ def validate_node_report(report: Any, size_bytes: int | None = None) -> list[str
                 p.add(f"{path}.validation.problems", "must be an array of at most 50 items")
             else:
                 for prob in probs:
-                    if not isinstance(prob, str) or not 1 <= len(prob) <= 300 or not RE_PRINTABLE_ASCII.match(prob):
+                    if not isinstance(prob, str) or not 1 <= len(prob) <= 300 or not RE_PRINTABLE_ASCII.fullmatch(prob):
                         p.add(f"{path}.validation.problems", "items must be 1-300 printable ASCII characters")
                         break
                 if _int(p, val["problems_total"], f"{path}.validation.problems_total") and len(probs) != min(
@@ -673,7 +701,7 @@ def validate_node_report(report: Any, size_bytes: int | None = None) -> list[str
                         _int(p, s["counts_by_severity"][k], f"{path}.report_summary.counts_by_severity.{k}")
                 ids = s["finding_ids"]
                 if not isinstance(ids, list) or len(ids) > 200 or not all(
-                    isinstance(x, str) and len(x) <= 98 and RE_PRINTABLE_ASCII.match(x) for x in ids
+                    isinstance(x, str) and len(x) <= 98 and RE_PRINTABLE_ASCII.fullmatch(x) for x in ids
                 ):
                     p.add(f"{path}.report_summary.finding_ids", "must be at most 200 ASCII ids of at most 98 characters")
                 elif _int(p, s["finding_ids_total"], f"{path}.report_summary.finding_ids_total") and len(ids) != min(
