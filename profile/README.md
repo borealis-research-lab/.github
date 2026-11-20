@@ -7,6 +7,7 @@ An independent open-source research laboratory exploring distributed computing, 
 | Project | Description | Status |
 |---------|-------------|--------|
 | [Nyyrikki](https://github.com/borealis-research-lab/security-event-analysis) (`security-event-analysis`) | Identifies potentially suspicious activity in local Windows Security events, with traceable evidence. Deterministic rules; reports in `borealis-agent-report/1`. | Experimental MVP, validated on real Windows data |
+| [Ilmarinen](https://github.com/borealis-research-lab/file-integrity) (`file-integrity`) | Detects unexpected content changes to user-selected files by comparing SHA-256 hashes with a protected baseline. Read-only; reports in `borealis-agent-report/1`. | Experimental, tested on Windows and Linux |
 
 ## How we work
 
